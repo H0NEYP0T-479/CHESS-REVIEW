@@ -1,32 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface UploadFormProps {
   onPgnLoad: (pgn: string) => void;
 }
 
 const UploadForm: React.FC<UploadFormProps> = ({ onPgnLoad }) => {
-  const [pgnInput, setPgnInput] = useState<string>("");
+  const [pgnInput, setPgnInput] = useState("");
 
   const handleLoad = () => {
-    onPgnLoad(pgnInput);
+    if (pgnInput.trim().length > 0) onPgnLoad(pgnInput);
   };
 
   return (
-    <div style={{ marginBottom: "20px" }}>
+    <div className="upload-form">
       <textarea
         rows={4}
-        placeholder="Paste PGN here..."
+        placeholder="Paste PGN here…"
         value={pgnInput}
-        onChange={(e) => setPgnInput(e.target.value)}
-        style={{ width: "100%", padding: "10px" }}
-      />
-      <br />
-      <button 
-        onClick={handleLoad} 
-        style={{ padding: "10px 20px", marginTop: "10px", cursor: "pointer" }}
-      >
-        Load PGN
-      </button>
+        onChange={e => setPgnInput(e.target.value)}
+      /><br />
+      <button className="pgn-btn" onClick={handleLoad}>Load PGN</button>
     </div>
   );
 };
