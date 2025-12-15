@@ -41,6 +41,24 @@ A comprehensive chess platform featuring live play, game analysis, puzzles, rati
 
 ## Setup Instructions
 
+### Quick Start (Linux/Mac)
+
+```bash
+# Run the setup script
+./setup.sh
+
+# Start the development servers
+./start-dev.sh
+```
+
+Then open http://localhost:5173 in your browser.
+
+**Test credentials:**
+- Username: `testuser`
+- Password: `password123`
+
+### Manual Setup
+
 ### Prerequisites
 - Node.js 18+ and npm
 - Python 3.8+
