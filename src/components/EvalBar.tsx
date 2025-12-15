@@ -6,8 +6,8 @@ interface EvalBarProps {
 }
 
 const EvalBar: React.FC<EvalBarProps> = ({ evaluation, isMate }) => {
-  let evalScore = typeof evaluation === "number" ? evaluation : 0;
-  let percent = 50 + Math.max(-50, Math.min(50, evalScore / 20));
+  const evalScore = typeof evaluation === "number" ? evaluation : 0;
+  const percent = 50 + Math.max(-50, Math.min(50, evalScore / 20));
   return (
     <div className="eval-bar-outer">
       <div className="eval-bar-bg">

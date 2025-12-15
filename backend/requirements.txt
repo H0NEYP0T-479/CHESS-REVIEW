@@ -3,3 +3,7 @@ uvicorn
 python-chess
 pydantic
 python-dotenv
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart

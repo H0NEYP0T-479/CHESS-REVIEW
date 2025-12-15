@@ -1,19 +1,47 @@
-import Board from './components/Board'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import Navigation from './components/Navigation'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Play from './pages/Play'
+import Analysis from './pages/Analysis'
+import Puzzles from './pages/Puzzles'
+import Leaderboard from './pages/Leaderboard'
+import './App.css'
+
+// Protected route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token } = useAuth()
+  return token ? <>{children}</> : <Navigate to="/login" />
+}
+
+function AppContent() {
+  return (
+    <div className="app-wrapper">
+      <Navigation />
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
+          <Route path="/analysis" element={<Analysis />} />
+          <Route path="/puzzles" element={<ProtectedRoute><Puzzles /></ProtectedRoute>} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+        </Routes>
+      </main>
+    </div>
+  )
+}
 
 function App() {
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
-      backgroundColor: '#f0f0f0',
-      paddingTop: '20px'
-    }}>
-      <div>
-        <h1 style={{ textAlign: 'center' }}>Shoaib's Chess Analyzer</h1>
-        <Board />
-      </div>
-    </div>
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   )
 }
 
