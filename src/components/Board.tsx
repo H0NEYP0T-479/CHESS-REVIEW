@@ -124,28 +124,28 @@ const Board: React.FC = () => {
   const [moveClassifications, setMoveClassifications] = useState<
     { label: string; color: string; icon: string }[]
   >([]);
-  const [quality, setQuality] = useState<any>(null);
   const [popupVisible, setPopupVisible] = useState(false);
 
   // Summary stats for White & Black
   const [whiteStats, setWhiteStats] = useState(initialClassStats());
   const [blackStats, setBlackStats] = useState(initialClassStats());
 
-  useEffect(() => setPosition(game.fen()), [game]);
+  useEffect(() => {
+    setPosition(game.fen());
+  }, [game]);
 
   // Process batch analysis and classify all moves
   const processBatchAnalysis = (
     batch: AnalysisResponse[],
-    moves: Move[],
-    fens: string[]
+    moves: Move[]
   ) => {
     const scores: { white: number[]; black: number[] } = { white: [], black: [] };
     const classifications: { label: string; color: string; icon: string }[] = [];
     let prevEval = 0;
 
     // Count stats per player
-    let whiteCount = initialClassStats();
-    let blackCount = initialClassStats();
+    const whiteCount = initialClassStats();
+    const blackCount = initialClassStats();
 
     for (let idx = 0; idx < batch. length; idx++) {
       const analysis = batch[idx];
@@ -207,7 +207,6 @@ const Board: React.FC = () => {
     setCurrentMoveIndex(index);
 
     if (index >= 0 && moveClassifications[index]) {
-      setQuality(moveClassifications[index]);
       const lastMove = history[index];
       setOptionSquares(
         lastMove
@@ -218,7 +217,6 @@ const Board: React.FC = () => {
           : {}
       );
     } else {
-      setQuality(null);
       setOptionSquares({});
     }
   };
@@ -245,7 +243,6 @@ const Board: React.FC = () => {
       setCurrentMoveIndex(-1);
       setOptionSquares({});
       setMoveScores({ white: [], black: [] });
-      setQuality(null);
       setAnalysisBatch([]);
       setMoveClassifications([]);
       setWhiteStats(initialClassStats());
@@ -259,7 +256,7 @@ const Board: React.FC = () => {
         depth: 12,
       });
       setAnalysisBatch(data);
-      processBatchAnalysis(data, allMoves, fens);
+      processBatchAnalysis(data, allMoves);
 
       setPopupVisible(false);
     } catch (error) {
@@ -363,7 +360,7 @@ const Board: React.FC = () => {
       <div className="board-center-wrap">
         <EvalBar evaluation={currentAnalysis?.evaluation ??  0} isMate={currentAnalysis?.mate} />
         <div className="chessboard-wrap">
-          <Chessboard options={{ position }} customSquares={optionSquares} />
+          <Chessboard options={{ position, squareStyles: optionSquares }} />
           <div className="nav-bar">
             <button className="nav-btn" onClick={() => navigateMove(currentMoveIndex - 1)}>
               ◀

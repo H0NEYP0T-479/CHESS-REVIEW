@@ -17,7 +17,7 @@ export default function useGameLogic() {
       setGame(new Chess());
       setCurrentMoveIndex(-1);
       return true; // Success
-    } catch (e) {
+    } catch {
       return false; // Error
     }
   };

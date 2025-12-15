@@ -24,3 +24,11 @@ dist-ssr
 *.sw?
 
 engine/
+venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.local
