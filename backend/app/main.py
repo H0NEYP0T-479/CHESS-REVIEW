@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from datetime import timedelta
+from contextlib import asynccontextmanager
 
 from .analysis import analyze_fen_position
 from .database import get_db, init_db, User, UserProfile, Game, Puzzle, PuzzleAttempt
@@ -19,12 +20,17 @@ from .schemas import (
 )
 from .rating import update_ratings, get_k_factor
 
-app = FastAPI(title="Chess Review API")
 
-# Initialize database on startup
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize database
     init_db()
+    yield
+    # Shutdown: cleanup if needed
+    pass
+
+
+app = FastAPI(title="Chess Review API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
