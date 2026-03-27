@@ -15,3 +15,18 @@ export interface SavedMove {
   note?: string;
   created_at: string;
 }
+
+export interface AnalysisResponse {
+  best_move: string | null;
+  evaluation: number;
+  mate: boolean;
+  pv?: string[];
+  lines?: Array<{ best_move: string | null; evaluation: number; mate: boolean; pv: string[] }>;
+  error?: string;
+}
+
+export interface AnalysisData {
+  best_move: string | null;
+  evaluation: number;
+  mate: boolean;
+}

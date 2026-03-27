@@ -1,56 +1,184 @@
 import chess
 import chess.engine
 import os
+import functools
+from typing import Optional
 
-# --- PATH FIX START ---
-# Hum Current Working Directory check karenge
-CURRENT_DIR = os.getcwd() # Ye 'backend' folder hona chahiye
-ENGINE_FOLDER = os.path.join(CURRENT_DIR, "engine")
+# --- Stockfish path resolution ---
+# Check multiple possible locations for the Stockfish binary
+_CANDIDATE_PATHS = [
+    os.path.join(os.path.dirname(__file__), "..", "stockfish_16"),
+    os.path.join(os.path.dirname(__file__), "..", "engine", "stockfish"),
+    os.path.join(os.path.dirname(__file__), "..", "engine", "stockfish_16"),
+    "/usr/bin/stockfish",
+    "/usr/local/bin/stockfish",
+    "stockfish",
+]
 
-# File ka naam define karein
-ENGINE_FILE = "stockfish_16.exe.exe" 
-STOCKFISH_PATH = os.path.join(ENGINE_FOLDER, ENGINE_FILE)
+def _find_stockfish() -> Optional[str]:
+    """Find the first available Stockfish binary."""
+    for path in _CANDIDATE_PATHS:
+        resolved = os.path.realpath(path)
+        if (
+            os.path.isfile(resolved)
+            and os.path.getsize(resolved) > 0
+            and os.access(resolved, os.X_OK)
+        ):
+            return resolved
+    return None
 
-# Debugging ke liye print karein (Terminal check karein)
-print(f"🔍 Looking for engine at: {STOCKFISH_PATH}")
+STOCKFISH_PATH = _find_stockfish()
 
-if os.path.exists(STOCKFISH_PATH):
-    print("✅ Engine FOUND!")
-else:
-    print("❌ Engine NOT FOUND!")
-    print(f"📂 Files in '{ENGINE_FOLDER}':")
-    try:
-        print(os.listdir(ENGINE_FOLDER)) # Folder ke andar kya hai wo dikhaye
-    except Exception as e:
-        print(f"Folder hi nahi mila: {e}")
-# --- PATH FIX END ---
+# --- Engine resource limits (tune these for your deployment environment) ---
+# Lower thread count ensures deterministic analysis in concurrent API deployments.
+# 64 MB hash table is sufficient for typical per-request analysis depths up to 20.
+ENGINE_THREADS = 1
+ENGINE_HASH_MB = 64
 
-def analyze_fen_position(fen: str, depth: int):
-    # ... baki code same rahega ...
+# Maximum allowed depth (30 is sufficient; deeper adds latency with diminishing returns).
+MAX_DEPTH = 30
+# Maximum number of PV lines returned per position.
+MAX_MULTIPV = 5
+# --- Move classification constants ---
+# Centipawn thresholds for move quality classification.
+# Positive values mean the evaluation improved (or held) relative to the previous move.
+# "best" threshold is applied as a tolerance: within 10cp of engine's top recommendation.
+CLASSIFICATION_THRESHOLDS = {
+    "brilliant": 150,   # eval improves 1.5+ pawns beyond best engine move
+    "great": 50,        # eval improves or stays very close to best (> 0.5 pawns gain)
+    "best": 10,         # within 0.1 pawns of the engine's top recommendation
+    "good": 0,          # no evaluation loss
+    "inaccuracy": -100, # up to 1 pawn loss
+    "mistake": -300,    # up to 3 pawn loss
+    # blunder: worse than -300 cp
+}
+
+
+def classify_move(
+    prev_eval: int,
+    current_eval: int,
+    best_move: Optional[str],
+    played_move: str,
+    is_mate: bool,
+    turn: str,
+) -> str:
+    """Classify a move based on evaluation delta (Chess.com style)."""
+    if is_mate:
+        return "game_over"
+
+    eval_diff = current_eval - prev_eval
+    if turn == "b":
+        eval_diff = -eval_diff
+
+    is_best = best_move is not None and best_move == played_move
+
+    if is_best and eval_diff >= CLASSIFICATION_THRESHOLDS["brilliant"]:
+        return "brilliant"
+    # "best" uses a negative tolerance: the move is within 10cp of the engine recommendation
+    if is_best and eval_diff >= -CLASSIFICATION_THRESHOLDS["best"]:
+        return "best"
+    if eval_diff >= CLASSIFICATION_THRESHOLDS["great"]:
+        return "great"
+    if eval_diff >= CLASSIFICATION_THRESHOLDS["good"]:
+        return "good"
+    if eval_diff >= CLASSIFICATION_THRESHOLDS["inaccuracy"]:
+        return "inaccuracy"
+    if eval_diff >= CLASSIFICATION_THRESHOLDS["mistake"]:
+        return "mistake"
+    return "blunder"
+
+
+@functools.lru_cache(maxsize=2048)
+def _cached_analysis(fen: str, depth: int, multipv: int):
+    """
+    Core analysis function with LRU cache for position results.
+    Returns a tuple that can be safely cached.
+    """
+    if not STOCKFISH_PATH:
+        return None, "Stockfish engine not found. Install stockfish and ensure it is accessible."
+
     board = chess.Board(fen)
-    
-    if not os.path.exists(STOCKFISH_PATH):
-        return {"evaluation": 0, "mate": False, "best_move": None, "error": f"Path Error: {STOCKFISH_PATH}"}
+    if not board.is_valid():
+        return None, f"Invalid FEN position: {fen}"
 
     try:
-        # Baki function same...
         with chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH) as engine:
-            result = engine.analyse(board, chess.engine.Limit(depth=depth))
-            
-            score = result["score"].white()
-            
-            if score.is_mate():
-                eval_val = score.mate()
-                is_mate = True
-            else:
-                eval_val = score.score()
-                is_mate = False
+            # Use module-level constants for resource limits
+            engine.configure({"Threads": ENGINE_THREADS, "Hash": ENGINE_HASH_MB})
 
-            return {
-                "best_move": result["pv"][0].uci() if "pv" in result else None,
-                "evaluation": eval_val,
-                "mate": is_mate
-            }
+            result = engine.analyse(
+                board,
+                chess.engine.Limit(depth=depth),
+                multipv=multipv,
+            )
+
+            lines = []
+            if isinstance(result, list):
+                analysis_items = result
+            else:
+                analysis_items = [result]
+
+            for item in analysis_items:
+                score = item["score"].white()
+                if score.is_mate():
+                    eval_val = score.mate()
+                    is_mate = True
+                else:
+                    cp = score.score()
+                    eval_val = cp if cp is not None else 0
+                    is_mate = False
+
+                pv = item.get("pv", [])
+                best_move = pv[0].uci() if pv else None
+                pv_moves = [m.uci() for m in pv[:10]]
+
+                lines.append({
+                    "best_move": best_move,
+                    "evaluation": eval_val,
+                    "mate": is_mate,
+                    "pv": pv_moves,
+                })
+
+            return lines, None
+
+    except chess.engine.EngineTerminatedError:
+        return None, "Engine process terminated unexpectedly"
     except Exception as e:
-        print(f"Engine Error: {e}")
-        return {"evaluation": 0, "mate": False, "best_move": None, "error": str(e)}
+        return None, str(e)
+
+
+def analyze_fen_position(fen: str, depth: int = 12, multipv: int = 1) -> dict:
+    """
+    Analyze a FEN position to the given depth.
+
+    Args:
+        fen:     FEN string of the position to analyze.
+        depth:   Search depth (default 12).
+        multipv: Number of principal variation lines to return (default 1).
+
+    Returns:
+        dict with keys: best_move, evaluation, mate, pv, lines, error (optional).
+    """
+    depth = max(1, min(depth, MAX_DEPTH))
+    multipv = max(1, min(multipv, MAX_MULTIPV))
+
+    lines, error = _cached_analysis(fen, depth, multipv)
+
+    if error:
+        return {
+            "best_move": None,
+            "evaluation": 0,
+            "mate": False,
+            "pv": [],
+            "lines": [],
+            "error": error,
+        }
+
+    primary = lines[0] if lines else {}
+    return {
+        "best_move": primary.get("best_move"),
+        "evaluation": primary.get("evaluation", 0),
+        "mate": primary.get("mate", False),
+        "pv": primary.get("pv", []),
+        "lines": lines,
+    }
