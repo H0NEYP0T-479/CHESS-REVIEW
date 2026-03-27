@@ -45,18 +45,29 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class AnalysisRequest(BaseModel):
     fen: str
     depth: int = 12
+    multipv: int = 1
 
 
 # --- BATCH SUPPORT ---
 class BatchAnalysisRequest(BaseModel):
     fens: List[str]
     depth: int = 10
+    multipv: int = 1
+
+
+class PVLine(BaseModel):
+    best_move: Optional[str] = None
+    evaluation: float
+    mate: bool
+    pv: List[str] = []
 
 
 class AnalysisResponse(BaseModel):
     best_move: Optional[str] = None
     evaluation: float
     mate: bool
+    pv: List[str] = []
+    lines: List[PVLine] = []
     error: Optional[str] = None
 
 
@@ -262,7 +273,7 @@ def read_root():
 
 @app.post("/analyze", response_model=AnalysisResponse)
 def analyze(request: AnalysisRequest):
-    data = analyze_fen_position(request.fen, request.depth)
+    data = analyze_fen_position(request.fen, request.depth, request.multipv)
     return data
 
 
@@ -270,6 +281,6 @@ def analyze(request: AnalysisRequest):
 def analyze_batch(request: BatchAnalysisRequest):
     results = []
     for fen in request.fens:
-        data = analyze_fen_position(fen, request.depth)
+        data = analyze_fen_position(fen, request.depth, request.multipv)
         results.append(data)
     return results

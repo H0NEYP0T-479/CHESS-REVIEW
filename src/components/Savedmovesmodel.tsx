@@ -1,5 +1,4 @@
-import React from "react";
-import { SavedMove } from "../types";
+import type { SavedMove } from "../types";
 
 export default function SavedMovesModal({
   open,

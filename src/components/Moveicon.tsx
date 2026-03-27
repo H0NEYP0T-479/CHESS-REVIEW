@@ -1,5 +1,3 @@
-import React from "react";
-
 type EvalKey = "brilliant" | "great" | "best" | "good" | "inaccuracy" | "mistake" | "blunder" | "unknown";
 
 const colorMap: Record<EvalKey, string> = {

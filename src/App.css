@@ -237,7 +237,8 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   text-decoration: none;
   transition: transform 0.2s, box-shadow 0.2s;
-=======
+}
+
 /* Updated styles to support icon overlays, saved moves modal, and move list icons. */
 
 .app-root {
@@ -336,7 +337,6 @@
   box-shadow: 0 6px 20px rgba(14, 30, 37, 0.06);
   max-height: 520px;
   overflow: auto;
->>>>>>> 9ff7bf6 (Local changes after merge)
 }
 .move-list table {
   width: 100%;
@@ -360,7 +360,6 @@
 .icon-above { display: flex; align-items: center; justify-content: center; width: 36px; }
 .move-body { display: flex; gap: 8px; align-items: center; }
 
-<<<<<<< HEAD
 .feature-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -525,7 +524,6 @@
 
 /* Existing board styles remain the same */
 
-=======
 /* Move icon */
 .move-icon {
   border-radius: 50%;
@@ -578,4 +576,3 @@
 
 /* Footer note */
 .footer-note { margin-top: 12px; color: #6b7280; font-size: 13px; }
->>>>>>> 9ff7bf6 (Local changes after merge)

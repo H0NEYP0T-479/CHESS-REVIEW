@@ -1,6 +1,5 @@
-import React from "react";
-import { MoveInfo } from "../types";
-import MoveIcon from "./MoveIcon";
+import type { MoveInfo } from "../types";
+import MoveIcon from "./Moveicon";
 
 export default function MoveList({ moves, onSaveMove }: { moves: MoveInfo[]; onSaveMove: (m: MoveInfo) => void }) {
   // Render moves grouped by fullmove number
@@ -20,37 +19,41 @@ export default function MoveList({ moves, onSaveMove }: { moves: MoveInfo[]; onS
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.moveNumber}>
-              <td className="move-number">{r.moveNumber}.</td>
-              <td className="move-cell">
-                {r.white ? (
-                  <div className="move-entry">
-                    <div className="icon-above">
-                      <MoveIcon evalKey={r.white.eval} />
+          {rows.map((r) => {
+            const whiteMove = r.white;
+            const blackMove = r.black;
+            return (
+              <tr key={r.moveNumber}>
+                <td className="move-number">{r.moveNumber}.</td>
+                <td className="move-cell">
+                  {whiteMove ? (
+                    <div className="move-entry">
+                      <div className="icon-above">
+                        <MoveIcon evalKey={whiteMove.eval} />
+                      </div>
+                      <div className="move-body">
+                        <span className="move-san">{whiteMove.san}</span>
+                        <button className="btn small" onClick={() => onSaveMove(whiteMove)}>Save Move</button>
+                      </div>
                     </div>
-                    <div className="move-body">
-                      <span className="move-san">{r.white.san}</span>
-                      <button className="btn small" onClick={() => onSaveMove(r.white)}>Save Move</button>
+                  ) : null}
+                </td>
+                <td className="move-cell">
+                  {blackMove ? (
+                    <div className="move-entry">
+                      <div className="icon-above">
+                        <MoveIcon evalKey={blackMove.eval} />
+                      </div>
+                      <div className="move-body">
+                        <span className="move-san">{blackMove.san}</span>
+                        <button className="btn small" onClick={() => onSaveMove(blackMove)}>Save Move</button>
+                      </div>
                     </div>
-                  </div>
-                ) : null}
-              </td>
-              <td className="move-cell">
-                {r.black ? (
-                  <div className="move-entry">
-                    <div className="icon-above">
-                      <MoveIcon evalKey={r.black.eval} />
-                    </div>
-                    <div className="move-body">
-                      <span className="move-san">{r.black.san}</span>
-                      <button className="btn small" onClick={() => onSaveMove(r.black)}>Save Move</button>
-                    </div>
-                  </div>
-                ) : null}
-              </td>
-            </tr>
-          ))}
+                  ) : null}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
