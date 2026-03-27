@@ -1,3 +1,4 @@
+
 /* Navigation */
 .main-nav {
   display: flex;
@@ -236,8 +237,130 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   text-decoration: none;
   transition: transform 0.2s, box-shadow 0.2s;
+=======
+/* Updated styles to support icon overlays, saved moves modal, and move list icons. */
+
+.app-root {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #111827;
+  padding: 12px;
 }
 
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.players {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.player-name {
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: linear-gradient(180deg,#ffffff,#f3f4f6);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.player-name.white-name { color: #111; }
+.player-name.black-name { color: #111; }
+
+.saved-controls .btn { margin-left: 8px; }
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Board layout */
+.board-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 6px 20px rgba(14, 30, 37, 0.06);
+}
+.board-container {
+  position: relative;
+  width: 480px;
+  height: 480px;
+}
+/* Fake board squares for overlay positioning */
+.fake-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.square {
+  width: 100%;
+  height: 100%;
+}
+.square.light { background: #f0d9b5; }
+.square.dark { background: #b58863; }
+
+/* overlay container sits on top of board */
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.overlay-icon {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -120%); /* place above square center */
+  pointer-events: none;
+}
+/* position overlay icons by searching for square data attribute (we place them by CSS variables).
+   To support static positioning we will compute position via CSS by selecting squares - but since we can't
+   dynamically style each square in a straightforward portable way here, overlay elements must be positioned
+   via JS if you need pixel-perfect align. The overlay example here relies on the grid-based placeholder board. */
+
+.board-overlay .overlay-icon[data-square] {
+  /* Map data-square to grid position using inline style (left/top) — the code sample in App.tsx uses static placeholder mapping */
+}
+
+/* Move entry list */
+.moves-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 6px 20px rgba(14, 30, 37, 0.06);
+  max-height: 520px;
+  overflow: auto;
+>>>>>>> 9ff7bf6 (Local changes after merge)
+}
+.move-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.move-list th, .move-list td {
+  padding: 6px;
+  text-align: left;
+  vertical-align: top;
+}
+.move-number {
+  width: 40px;
+  text-align: right;
+  color: #6b7280;
+}
+.move-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.icon-above { display: flex; align-items: center; justify-content: center; width: 36px; }
+.move-body { display: flex; gap: 8px; align-items: center; }
+
+<<<<<<< HEAD
 .feature-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -402,3 +525,57 @@
 
 /* Existing board styles remain the same */
 
+=======
+/* Move icon */
+.move-icon {
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.move-icon-symbol { font-size: 12px; line-height: 1; }
+
+/* Small buttons */
+.btn {
+  background: #111827;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+.btn.small { padding: 4px 8px; font-size: 13px; }
+.btn.danger { background: #ef4444; }
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17,24,39,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 10px;
+  width: 540px;
+  max-width: calc(100% - 24px);
+  max-height: 80vh;
+  overflow: auto;
+  padding: 12px;
+}
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.modal-body { padding: 8px 0; }
+.saved-list { list-style: none; padding: 0; margin: 0; }
+.saved-item { padding: 8px; border-bottom: 1px solid #f3f4f6; }
+.saved-meta { display:flex; gap:8px; align-items:center; font-size:13px; color:#374151; }
+.saved-san { font-weight:600; }
+
+/* Footer note */
+.footer-note { margin-top: 12px; color: #6b7280; font-size: 13px; }
+>>>>>>> 9ff7bf6 (Local changes after merge)

@@ -13,6 +13,7 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ data, loading, prevEval }
 
   // --- LOGIC TO DETECT BLUNDER/GREAT MOVE ---
   let moveQuality = "Normal";
+  
   let color = "black";
 
   // Score difference nikalain
